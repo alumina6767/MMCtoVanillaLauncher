@@ -22,9 +22,9 @@ jobs:
 
     - run: pip install pipenv
     - run: pipenv install
-    - run: pipenv install pyinstaller
     - run: pipenv shell
-    - run: pyinstaller MMC_to_vanilla_launcher.py --onefile
+    - run: pipenv install pyinstaller
+    - run: pipenv run pyinstaller MMC_to_vanilla_launcher.py --onefile
     # Optionally verify that it works (provided that it does not need user interaction)
     - uses: actions/upload-artifact@v4.6.2
       with:
