@@ -95,7 +95,6 @@ def unzip_file(zip_path, extract_dir_path):
     # マルチMCから書き出されたZIPは文字化けする
     with zipfile.ZipFile(zip_path) as z:
         for info in z.infolist():
-            print(info)
             info.filename = info.orig_filename.encode('cp437').decode('cp932')
             if os.sep != "/" and os.sep in info.filename:
                 info.filename = info.filename.replace(os.sep, "/")
