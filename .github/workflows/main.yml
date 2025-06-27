@@ -21,9 +21,24 @@ jobs:
         python-version: 3.13
 
     - run: pip install pipenv
-    - run: pipenv install
-    - run: pipenv install pyinstaller
-    - run: pipenv install pillow
+    - run: pipenv sync
+
+    # pyinstallerのインストール
+    - name: Install Pyinstaller
+      run: |
+        git clone https://github.com/pyinstaller/pyinstaller.git
+        cd pyinstaller/bootloader
+        pipenv run python ./waf distclean all
+        cd ..
+        pipenv run pip install .
+        cd ~
+
+    - name: Install Pillow
+      run: pipenv run pip pillow
+
+    - name: Show pip list
+      run: pipenv run pip list
+
     - run: pipenv run pyinstaller MMC_to_vanilla_launcher.py --onefile --icon=icon.ico
     # Optionally verify that it works (provided that it does not need user interaction)
     - uses: actions/upload-artifact@v4.6.2
