@@ -32,13 +32,13 @@ jobs:
         cd pyinstaller/bootloader
         python ./waf distclean all
         cd ..
-        python setup.py install
+        python install -e .
         cd ~
 
     # portablemcのインストール
     - run: pip install portablemc[certifi]
-    - run: pipenv install pillow
-    - run: pipenv run pyinstaller MMC_to_vanilla_launcher.py --onefile --icon=icon.ico
+    - run: pip install pillow
+    - run: pip run pyinstaller MMC_to_vanilla_launcher.py --onefile --icon=icon.ico
     # Optionally verify that it works (provided that it does not need user interaction)
     - uses: actions/upload-artifact@v4.6.2
       with:
