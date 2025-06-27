@@ -32,7 +32,7 @@ jobs:
         cd pyinstaller/bootloader
         python ./waf distclean all
         cd ..
-        python install -e .
+        python install .
         cd ~
 
     # portablemcのインストール
