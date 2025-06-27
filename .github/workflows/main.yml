@@ -26,7 +26,7 @@ jobs:
     # 依存関係をいれる
     - name: Install dependencies
       run: |
-        pipenv install flet flet-desktop flet-cli
+        pipenv install flet flet-desktop flet-cli setuptools
     - run: pipenv install pillow
 
     # pyinstallerのインストール
