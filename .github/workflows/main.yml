@@ -21,7 +21,9 @@ jobs:
         python-version: 3.13
 
     - run: pip install pipenv
-    - run: pipenv install
+    - run: | 
+        pipenv install
+        pipenv shell
 
     # 依存関係をいれる
     - name: Install dependencies
