@@ -20,13 +20,10 @@ jobs:
       with:
         python-version: 3.13
 
-    - run: pip install pipenv
-    - run: pipenv install
-
     # 依存関係をいれる
     - name: Install dependencies
       run: |
-        pipenv install flet flet-desktop flet-cli
+        pip install flet flet-desktop flet-cli
 
     # pyinstallerのインストール
     - name: install Pyinstaller
@@ -38,6 +35,8 @@ jobs:
         python setup.py install
         cd ~
 
+    # portablemcのインストール
+    - run: pip install portablemc[certifi]
     - run: pipenv install pillow
     - run: pipenv run pyinstaller MMC_to_vanilla_launcher.py --onefile --icon=icon.ico
     # Optionally verify that it works (provided that it does not need user interaction)
