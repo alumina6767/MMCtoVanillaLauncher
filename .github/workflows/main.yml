@@ -36,7 +36,7 @@ jobs:
         cd pyinstaller/bootloader
         pipenv run python ./waf distclean all
         cd ..
-        pipenv run python setup.py install
+        pipenv run pip install .
         cd ~
 
     # なんか必要って言われるので入れる
@@ -44,7 +44,7 @@ jobs:
 
     - name: Show pip list
       run: pipenv run pip list
-      
+
     - run: pipenv run pyinstaller MMC_to_vanilla_launcher.py --onefile --icon=icon.ico
     # Optionally verify that it works (provided that it does not need user interaction)
     - uses: actions/upload-artifact@v4.6.2
