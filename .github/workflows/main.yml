@@ -34,7 +34,7 @@ jobs:
         cd ~
 
     - name: Install Pillow
-      run: pipenv run pip pillow
+      run: pipenv install pillow
 
     - name: Show pip list
       run: pipenv run pip list
