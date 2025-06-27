@@ -39,6 +39,8 @@ jobs:
         pipenv run python setup.py install
         cd ~
 
+    # なんか必要って言われるので入れる
+    - run: pipenv run pip install altgraph
     - run: pipenv run pip list
     - run: pipenv run pyinstaller MMC_to_vanilla_launcher.py --onefile --icon=icon.ico
     # Optionally verify that it works (provided that it does not need user interaction)
