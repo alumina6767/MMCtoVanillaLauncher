@@ -4,6 +4,7 @@ import shutil
 import zipfile
 import json
 import base64
+import configparser
 from portablemc.fabric import FabricVersion
 from portablemc.forge import ForgeVersion, _NeoForgeVersion
 
@@ -22,9 +23,27 @@ mmc_zip = 'MMC\\1.21.4_Fabric_kuronekotemp_20250218_MMC2.zip'
 # MMCの設定ファイル
 MMC_PACK = 'mmc-pack.json'
 
+# インスタンスの設定ファイル
+INSTANCE_CFG = 'instance.cfg'
+
 # ランチャーの設定ファイル
 LAUNCHER_PROFILES = os.path.join(
     portablemc.standard.get_minecraft_dir(), 'launcher_profiles.json')
+
+# デフォルトのJVM引数
+DEFAULT_JVM_ARGS = [
+    "-XX:+UnlockExperimentalVMOptions",
+    "-XX:+UseG1GC",
+    "-XX:G1NewSizePercent=20",
+    "-XX:G1ReservePercent=20",
+    "-XX:MaxGCPauseMillis=50",
+    "-XX:G1HeapRegionSize=32M"
+]
+
+# デフォルトのメモリ 通常より大きめに設定している
+DEFAULT_MEMORY = [
+    "-Xmx4G"
+]
 
 
 def get_config(data):
@@ -82,8 +101,8 @@ def image_file_to_base64(file_path):
 
     return data.decode('utf-8')
 
-def unzip_file(zip_path, extract_dir_path):
 
+def unzip_file(zip_path, extract_dir_path):
     """
     ZIPファイルを展開
 
@@ -91,7 +110,7 @@ def unzip_file(zip_path, extract_dir_path):
         zip_path (str): ZIPファイルのパス
         extract_dir_path (str): 展開先のディレクトリ
     """
-    
+
     # マルチMCから書き出されたZIPは文字化けする
     with zipfile.ZipFile(zip_path) as z:
         for info in z.infolist():
@@ -99,6 +118,47 @@ def unzip_file(zip_path, extract_dir_path):
             if os.sep != "/" and os.sep in info.filename:
                 info.filename = info.filename.replace(os.sep, "/")
             z.extract(info, extract_dir_path)
+
+
+def get_jvm_args(path):
+    """
+    インスタンス設定からJVM引数を取得
+
+    Args:
+        path (str): インスタンス設定ファイルのパス
+
+    Returns:
+        str: JVM引数
+    """
+
+    # インスタンス設定読み込み
+    try:
+        # Prismの時
+        config = configparser.ConfigParser()
+        config.read(path)
+        general = config['General']
+
+    except configparser.MissingSectionHeaderError:
+        # MMCの時
+        with open(path, 'r') as f:
+            general = {}
+            for l in f.readlines():
+                k, v = l.split('=', 1)
+                general[k] = v
+
+    # メモリ割当て設定を引き継ぐ
+    memory = DEFAULT_MEMORY
+    if general['OverrideMemory'] == 'true':
+        memory = ['', '']
+        memory[0] = '-Xmx' + general['MaxMemAlloc'] + 'M'
+        memory[1] = '-Xms' + general['MinMemAlloc'] + 'M'
+
+    # JVM引数を引き継ぐ
+    jvm_args = DEFAULT_JVM_ARGS
+    if 'JvmArgs' in general and general['JvmArgs'].strip() != '':
+        jvm_args = general['JvmArgs'].strip("\" ").split(' ')
+
+    return ' '.join(memory + jvm_args)
 
 
 if __name__ == '__main__':
@@ -125,11 +185,11 @@ if __name__ == '__main__':
 
             # ZIPからverなどを読み込み
             mmc_pack_path = os.path.join(profile_dir, MMC_PACK)
-            
+
             # 設定ファイル読み込み失敗時
             if not os.path.exists(mmc_pack_path):
 
-                # 解凍し直す            
+                # 解凍し直す
                 shutil.rmtree(profile_dir)
                 unzip_file(mmc_zip_path, profile_dir)
 
@@ -138,11 +198,11 @@ if __name__ == '__main__':
                 if os.path.exists(duplicate_dir):
                     os.renames(duplicate_dir, profile_dir+'_new')
                     os.renames(profile_dir+'_new', profile_dir)
-            
+
                 else:
                     print("MMCの設定ファイルを読み込めませんでした。")
                     continue
-                
+
             with open(os.path.join(profile_dir, MMC_PACK), 'r') as f:
                 mmc_pack = json.load(f)
                 config = get_config(mmc_pack)
@@ -190,10 +250,14 @@ if __name__ == '__main__':
             else:
                 icon = "Grass"
 
+            # JVM引数の読み込み
+            jvm_args = get_jvm_args(os.path.join(profile_dir, INSTANCE_CFG))
+
             # 起動構成の追加
             launcher_profile['profiles'][mmc_zip] = {
                 "gameDir": game_dir,
                 "icon": icon,
+                "javaArgs": jvm_args,
                 "lastVersionId": last_version_id,
                 "name": mmc_name,
                 "type": "custom"
@@ -206,7 +270,7 @@ if __name__ == '__main__':
 
         print('\n全ての起動構成のインストールを完了しました。\nマイクラのランチャーを再起動してください。\nエンターキーで終了します。')
         input()
-    
+
     except Exception as e:
         print(e)
         print('\nエラーが発生しました。\nエンターキーで終了します。')
